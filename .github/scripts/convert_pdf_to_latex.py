@@ -4,6 +4,7 @@ import sys
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
 
+
 def page_to_latex(llm, page_content: str) -> str:
     """Convert a single page content to LaTeX."""
     prompt = """You are a LaTeX expert. Convert ONLY this PDF page content to valid LaTeX code.
@@ -22,6 +23,7 @@ Content:
     
     response = llm.invoke(prompt)
     return response.content.strip()
+
 
 def convert_pdf_to_latex(pdf_path: str, llm) -> str:
     """Convert entire PDF to LaTeX document."""
@@ -50,6 +52,7 @@ def convert_pdf_to_latex(pdf_path: str, llm) -> str:
 """
     return tex_content
 
+
 def main():
     if len(sys.argv) < 2:
         print("No PDF files provided")
@@ -75,10 +78,10 @@ def main():
     
     for pdf_path in pdf_files:
         if not os.path.exists(pdf_path):
-            print(f"⚠️ File not found: {pdf_path}")
+            print(f"Warning: File not found: {pdf_path}")
             continue
         
-        print(f"📄 Processing: {pdf_path}")
+        print(f"Processing: {pdf_path}")
         
         try:
             tex_content = convert_pdf_to_latex(pdf_path, llm)
@@ -88,32 +91,12 @@ def main():
             with open(tex_path, "w", encoding="utf-8") as f:
                 f.write(tex_content)
             
-            print(f"✅ Generated: {tex_path}")
+            print(f"Generated: {tex_path}")
         
         except Exception as e:
-            print(f"❌ Error processing {pdf_path}: {e}")
+            print(f"Error processing {pdf_path}: {e}")
             sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
-```
-
-## Step 3: Add Your API Key as Secret
-
-1. Go to your GitHub repository
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Name: `NVIDIA_API_KEY`
-5. Value: `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`
-
-## Folder Structure
-```
-your-repo/
-├── .github/
-│   ├── workflows/
-│   │   └── pdf-to-latex.yml
-│   └── scripts/
-│       └── convert_pdf_to_latex.py
-├── docs/
-│   └── example.pdf  ← Push this, it converts & deletes
-└── README.md
