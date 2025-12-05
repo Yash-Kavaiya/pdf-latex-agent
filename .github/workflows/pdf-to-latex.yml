@@ -1,0 +1,62 @@
+name: PDF to LaTeX Converter
+
+on:
+  push:
+    paths:
+      - '**/*.pdf'
+      - '**/*.PDF'
+
+jobs:
+  convert-pdf:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          pip install pymupdf langchain-community langchain-nvidia-ai-endpoints
+      
+      - name: Get changed PDF files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            **/*.pdf
+            **/*.PDF
+      
+      - name: Convert PDFs to LaTeX
+        if: steps.changed-files.outputs.any_changed == 'true'
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          python .github/scripts/convert_pdf_to_latex.py "${{ steps.changed-files.outputs.all_changed_files }}"
+      
+      - name: Delete original PDF files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          for pdf in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            if [ -f "$pdf" ]; then
+              rm "$pdf"
+              echo "Deleted: $pdf"
+            fi
+          done
+      
+      - name: Commit and push changes
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git diff --staged --quiet || git commit -m "🔄 Convert PDF to LaTeX and cleanup [skip ci]"
+          git push
