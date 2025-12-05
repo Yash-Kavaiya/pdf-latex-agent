@@ -69,6 +69,11 @@ def main():
     api_key = os.environ.get("NVIDIA_API_KEY")
     if not api_key:
         print("ERROR: NVIDIA_API_KEY not set")
+        print("Please add NVIDIA_API_KEY to your repository secrets:")
+        print("  1. Go to Settings > Secrets and variables > Actions")
+        print("  2. Click 'New repository secret'")
+        print("  3. Name: NVIDIA_API_KEY")
+        print("  4. Value: your-nvidia-api-key")
         sys.exit(1)
     
     llm = ChatNVIDIA(
